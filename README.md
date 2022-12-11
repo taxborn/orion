@@ -6,3 +6,5 @@ What is intended to be a strongly-typed compile language. With the goal to be ge
 During the early stages I'll be creating examples of what I want the language to look like, and 
 hopefully from there generate an EBNF form of the language.
 
+**Examples:**
+- [generic main.ori file](./examples/main.ori)
