@@ -1,6 +1,7 @@
 use std::{path::PathBuf, io::Error};
-
 use clap::Parser;
+
+mod lexer;
 
 #[derive(Parser, Debug)]
 #[command(author, version, about, long_about = None)]
@@ -31,6 +32,11 @@ fn main() -> Result<(), Error>{
 
     // Ensure we have a file
     assert!(contents.len() > 0, "Unable to read file");
+
+    let mut lexer = lexer::Lexer::new(contents);
+    let tokens = lexer.lex();
+
+    println!("{tokens:?}");
 
     Ok(())
 }
