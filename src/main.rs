@@ -12,6 +12,18 @@ struct Args {
 
 fn main() {
     let args = Args::parse();
+    let mut contents = String::new();
 
-    println!("args: {args:?}");
+    // Check if a path was supplied
+    if let Some(file) = args.path {
+        // File was passed
+        contents = std::fs::read_to_string(file).unwrap();
+    } else {
+        // File was not passed. Eventually I'd like to implement a REPL, however
+        // for the time being, I'll just default to the 'examples/main.ori' file
+        // to lex/parse/etc..
+        contents = std::fs::read_to_string("examples/main.ori").unwrap();
+    }
+
+    println!("{contents}");
 }
