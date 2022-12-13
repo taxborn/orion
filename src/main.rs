@@ -34,9 +34,7 @@ fn main() -> Result<(), Error>{
     assert!(contents.len() > 0, "Unable to read file");
 
     let mut lexer = lexer::Lexer::new(contents);
-    let tokens = lexer.lex();
-
-    println!("{tokens:?}");
+    let tokens = lexer.lex()?;
 
     Ok(())
 }
