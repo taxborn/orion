@@ -2,7 +2,11 @@
 pub enum Token {
     Add,
     Sub,
-    Noop
+    Unknown
+}
+
+pub enum LexerError {
+    UnknownCharacter(char) 
 }
 
 #[derive(Debug)]
@@ -19,7 +23,7 @@ impl Lexer {
         }
     }
 
-    pub fn lex(&mut self) -> Vec<Token> {
+    pub fn lex(&mut self) -> Result<Vec<Token>, LexerError> {
         let mut buf = vec![];
         let chars = self.file_contents
             .chars()
@@ -31,11 +35,11 @@ impl Lexer {
             match chr {
                 '+' => buf.push(Token::Add),
                 '-' => buf.push(Token::Sub),
-                _ => buf.push(Token::Noop),
+                _ => return Err(LexerError::UnknownCharacter(chr))
             }
         }
 
-        buf
+        Ok(buf)
     }
 
     fn is_eof(&self) -> bool {
