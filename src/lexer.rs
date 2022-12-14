@@ -9,22 +9,20 @@ pub enum Token {
 #[derive(Debug)]
 pub struct Lexer {
     file_contents: String,
-    idx: usize
+    idx: usize,
 }
 
 impl Lexer {
     pub fn new(file_contents: String) -> Self {
         Self {
             file_contents,
-            idx: 0
+            idx: 0,
         }
     }
 
     pub fn lex(&mut self) -> Result<Vec<Token>, OrionError> {
         let mut buf = vec![];
-        let chars = self.file_contents
-            .chars()
-            .filter(|c| c.is_ascii());
+        let chars = self.file_contents.chars().filter(|c| c.is_ascii());
 
         for chr in chars {
             self.idx += 1;
@@ -33,7 +31,7 @@ impl Lexer {
                 '+' => buf.push(Token::Add),
                 '-' => buf.push(Token::Sub),
                 '\n' => continue,
-                _ => return Err(OrionError::UnknownCharacter(chr))
+                _ => return Err(OrionError::UnknownCharacter(chr)),
             }
         }
 
@@ -41,6 +39,6 @@ impl Lexer {
     }
 
     fn is_eof(&self) -> bool {
-        self.idx >= self.file_contents.len() 
+        self.idx >= self.file_contents.len()
     }
 }

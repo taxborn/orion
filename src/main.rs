@@ -1,7 +1,7 @@
-use orion::error::OrionError;
-use std::{path::PathBuf, fs};
 use clap::Parser;
 use colored::*;
+use orion::error::OrionError;
+use std::path::PathBuf;
 
 mod lexer;
 
@@ -10,31 +10,40 @@ mod lexer;
 struct Args {
     /// The path of the file to compile
     #[arg(short, long)]
-    file: Option<PathBuf>
+    file: Option<PathBuf>,
 }
 
-fn main() -> Result<(), OrionError>{
+fn main() -> Result<(), OrionError> {
     let args = Args::parse();
     let mut contents = String::new();
     let prefix = "[lexer]".green().bold();
 
     // Check if a path was supplied
-    if let Some(file) = args.file {
-        // File was passed
-        contents = fs::read_to_string(&file).unwrap();
-        
-        println!("{prefix} {file:?}");
-    } else {
-        // File was not passed. Eventually I'd like to implement a REPL, however
-        // for the time being, I'll just default to the 'examples/main.ori' file
-        // to lex/parse/etc..
-        contents = fs::read_to_string("examples/main.ori").unwrap();
-        
-        println!("{prefix} \"examples/main.ori\"");
-    }
+    match args.file {
+        Some(file) => {
+            // File was passed
+            match std::fs::read_to_string(&file) {
+                Ok(content) => {
+                    contents = content;
+                    println!("{prefix} {file:?}");
+                }
+                Err(error) => {
+                    println!("{}", OrionError::from(error));
 
-    // Ensure we have a file
-    assert!(!contents.is_empty(), "Unable to read file");
+                    // exit here?
+                    std::process::exit(-1);
+                }
+            }
+        }
+        None => {
+            // File was not passed. Eventually I'd like to implement a REPL, however
+            // for the time being, I'll just default to the 'examples/main.ori' file
+            // to lex/parse/etc..
+            contents = std::fs::read_to_string("examples/main.ori").unwrap();
+
+            println!("{prefix} \"examples/main.ori\"");
+        }
+    }
 
     let mut lexer = lexer::Lexer::new(contents);
     let tokens = lexer.lex();
@@ -46,7 +55,7 @@ fn main() -> Result<(), OrionError>{
         std::process::exit(-1);
     }
 
-    println!("toks: {:?}", tokens.unwrap()); 
+    println!("toks: {:?}", tokens.unwrap());
 
     Ok(())
 }
