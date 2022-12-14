@@ -14,8 +14,8 @@ struct Args {
 }
 
 fn main() -> Result<(), OrionError> {
+    let contents;
     let args = Args::parse();
-    let mut contents = String::new();
     let prefix = "[lexer]".green().bold();
 
     // Check if a path was supplied
