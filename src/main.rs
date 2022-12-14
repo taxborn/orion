@@ -1,5 +1,7 @@
-use std::{path::PathBuf, io::Error};
+use orion::error::OrionError;
+use std::{path::PathBuf, fs};
 use clap::Parser;
+use colored::*;
 
 mod lexer;
 
@@ -11,30 +13,40 @@ struct Args {
     file: Option<PathBuf>
 }
 
-fn main() -> Result<(), Error>{
+fn main() -> Result<(), OrionError>{
     let args = Args::parse();
     let mut contents = String::new();
+    let prefix = "[lexer]".green().bold();
 
     // Check if a path was supplied
     if let Some(file) = args.file {
         // File was passed
-        contents = std::fs::read_to_string(&file)?;
+        contents = fs::read_to_string(&file).unwrap();
         
-        println!("[lexing] {file:?}");
+        println!("{prefix} {file:?}");
     } else {
         // File was not passed. Eventually I'd like to implement a REPL, however
         // for the time being, I'll just default to the 'examples/main.ori' file
         // to lex/parse/etc..
-        contents = std::fs::read_to_string("examples/main.ori")?;
+        contents = fs::read_to_string("examples/main.ori").unwrap();
         
-        println!("[lexing] \"examples/main.ori\"")
+        println!("{prefix} \"examples/main.ori\"");
     }
 
     // Ensure we have a file
-    assert!(contents.len() > 0, "Unable to read file");
+    assert!(!contents.is_empty(), "Unable to read file");
 
     let mut lexer = lexer::Lexer::new(contents);
-    let tokens = lexer.lex()?;
+    let tokens = lexer.lex();
+
+    if let Err(error) = lexer.lex() {
+        println!("{error}");
+
+        // exit here?
+        std::process::exit(-1);
+    }
+
+    println!("toks: {:?}", tokens.unwrap()); 
 
     Ok(())
 }

@@ -1,12 +1,9 @@
+use crate::OrionError;
+
 #[derive(Debug)]
 pub enum Token {
     Add,
     Sub,
-    Unknown
-}
-
-pub enum LexerError {
-    UnknownCharacter(char) 
 }
 
 #[derive(Debug)]
@@ -23,7 +20,7 @@ impl Lexer {
         }
     }
 
-    pub fn lex(&mut self) -> Result<Vec<Token>, LexerError> {
+    pub fn lex(&mut self) -> Result<Vec<Token>, OrionError> {
         let mut buf = vec![];
         let chars = self.file_contents
             .chars()
@@ -35,7 +32,8 @@ impl Lexer {
             match chr {
                 '+' => buf.push(Token::Add),
                 '-' => buf.push(Token::Sub),
-                _ => return Err(LexerError::UnknownCharacter(chr))
+                '\n' => continue,
+                _ => return Err(OrionError::UnknownCharacter(chr))
             }
         }
 
