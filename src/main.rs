@@ -1,9 +1,8 @@
 use clap::Parser;
 use colored::*;
 use orion::error::OrionError;
+use orion::lexer::Lexer;
 use std::path::PathBuf;
-
-mod lexer;
 
 #[derive(Parser, Debug)]
 #[command(author, version, about, long_about = None)]
@@ -45,7 +44,7 @@ fn main() -> Result<(), OrionError> {
         }
     }
 
-    let mut lexer = lexer::Lexer::new(contents);
+    let mut lexer = Lexer::new(contents);
     let tokens = lexer.lex();
 
     if let Err(error) = lexer.lex() {
