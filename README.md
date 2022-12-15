@@ -3,7 +3,7 @@ What is intended to be a strongly-typed compile language. With the goal to be ge
 (or transpile to C in the early days, who knows, I haven't written the code generator yet)
 
 ## TODO
-Currently, there is just about everything to do. Currently working on the [Lexer](./src/lexer.rs) and determining the syntax
+Currently, there is just about everything to do. Currently working on the [Lexer](./src/lexer/lexer.rs) and determining the syntax
 in the `examples/` directory, but once I make progress I will be able to update this on whatever I am researching
 
 A few other house-keeping things I want to do:
@@ -17,3 +17,7 @@ hopefully from there generate an EBNF form of the language.
 
 **Examples:**
 - [generic main.ori file](./examples/main.ori)
+
+## References used:
+- The [Dragon Book](https://suif.stanford.edu/dragonbook/)
+    - Also used the lecture notes from the courses listed at the website
