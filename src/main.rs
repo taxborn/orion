@@ -1,7 +1,7 @@
 use clap::Parser;
 use colored::*;
 use orion::error::OrionError;
-use orion::lexer::Lexer;
+use orion::lexer::lexer::Lexer;
 use std::path::PathBuf;
 
 #[derive(Parser, Debug)]
