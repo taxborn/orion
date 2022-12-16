@@ -1,7 +1,9 @@
+//! Relevent structures and methods for the Tokens as part of lexical analysis
 #[derive(Debug)]
 pub enum TokenKind {
     Add,
     Sub,
+    Unknown,
 }
 
 /// Coordinate type. Used to keep track of (line, column)
@@ -26,26 +28,31 @@ impl std::fmt::Display for Span {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         write!(
             f,
-            "{}:{} -> {}:{}",
+            "{}:{}->{}:{}",
             self.start.0, self.start.1, self.end.0, self.end.1
         )
     }
 }
 
 #[derive(Debug)]
-pub struct Token {
+pub struct Token<'a> {
+    literal: &'a str,
     kind: TokenKind,
     span: Span,
 }
 
-impl Token {
-    pub fn new(kind: TokenKind, span: Span) -> Self {
-        Self { kind, span }
+impl<'a> Token<'a> {
+    pub fn new(literal: &'a str, kind: TokenKind, span: Span) -> Self {
+        Self {
+            literal,
+            kind,
+            span,
+        }
     }
 }
 
-impl std::fmt::Display for Token {
+impl std::fmt::Display for Token<'_> {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        write!(f, "{:?}({})", self.kind, self.span)
+        write!(f, "{:?}[\"{}\"]@[{}]", self.kind, self.literal, self.span)
     }
 }

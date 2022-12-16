@@ -45,16 +45,20 @@ fn main() -> Result<(), OrionError> {
     }
 
     let mut lexer = Lexer::new(contents);
-    let tokens = lexer.lex();
 
-    if let Err(error) = lexer.lex() {
-        println!("{error}");
+    match lexer.lex() {
+        Ok(tokens) => {
+            for token in tokens {
+                println!("{token}");
+            }
+        }
+        Err(error) => {
+            println!("{error}");
 
-        // exit here?
-        std::process::exit(-1);
+            // exit here?
+            std::process::exit(-1);
+        }
     }
-
-    println!("toks: {:?}", tokens.unwrap());
 
     Ok(())
 }

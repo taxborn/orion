@@ -21,3 +21,4 @@ hopefully from there generate an EBNF form of the language.
 ## References used:
 - The [Dragon Book](https://suif.stanford.edu/dragonbook/)
     - Also used the lecture notes from the courses listed at the website
+- [Kind functional language](https://github.com/Kindelia/Kind)
