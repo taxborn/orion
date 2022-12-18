@@ -3,7 +3,12 @@ This is the folder where the [lexer](https://en.wikipedia.org/wiki/Lexical_analy
 for Orion. Where I can
 
 ## Cursor
-The main scanner which takes in an input
+The main scanner which takes in an input, and operates over string slices. I
+chose to opdate over string slices as for now I see that it could help me with
+parsing keywords a bit better. Not sure if it is the most efficient, but since
+it is a string slice, and not owned, I can imagine that this is faster since
+we only need to allocate once when we read in the file, and then operate on
+slices over a reference of that String.
 
 ## Tokens
 Each token is stored with it's kind, and position.
