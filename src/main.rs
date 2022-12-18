@@ -12,7 +12,7 @@ struct Args {
     file: Option<PathBuf>,
 }
 
-fn main() -> Result<(), OrionError> {
+fn main() -> Result<(), OrionError<'static>> {
     let contents;
     let args = Args::parse();
     let prefix = "[lexer]".green().bold();

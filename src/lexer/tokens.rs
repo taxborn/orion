@@ -2,7 +2,9 @@
 #[derive(Debug)]
 pub enum TokenKind {
     Add,
+    Inc,
     Sub,
+    Dec,
     Unknown,
 }
 

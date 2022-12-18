@@ -5,29 +5,29 @@ use self::OrionError::*;
 use colored::*;
 
 #[derive(Debug)]
-pub enum OrionError {
+pub enum OrionError<'a> {
     // GENERAL ERRORS
     /// Unimplemented feature
     Unimplemented,
     IOError,
     // LEXER ERRORS
     /// Unknown character was passed to the lexer
-    UnknownCharacter(char),
+    UnknownCharacter(&'a str),
     // PARSER ERRORS
     // ...
 }
 
 /// Implementing the error trait for Orion's custom error
-impl std::error::Error for OrionError {}
+impl<'a> std::error::Error for OrionError<'a> {}
 
 /// For now, generalize all std::io errors to the OrionError::IOError error
-impl From<std::io::Error> for OrionError {
+impl<'a> From<std::io::Error> for OrionError<'a> {
     fn from(_: std::io::Error) -> Self {
         OrionError::IOError
     }
 }
 
-impl OrionError {
+impl<'a> OrionError<'a> {
     /// Get the message for each error, saying what happened
     pub fn message(&self) -> String {
         match self {
@@ -38,7 +38,7 @@ impl OrionError {
     }
 }
 
-impl std::fmt::Display for OrionError {
+impl<'a> std::fmt::Display for OrionError<'a> {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         let prefix = "[ERROR]".red().bold();
 
