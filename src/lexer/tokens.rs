@@ -22,6 +22,13 @@ impl Span {
             end: (end_line, end_col),
         }
     }
+
+    pub fn empty() -> Self {
+        Self {
+            start: (0, 0),
+            end: (0, 0),
+        }
+    }
 }
 
 impl std::fmt::Display for Span {

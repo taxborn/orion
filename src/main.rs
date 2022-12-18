@@ -44,7 +44,7 @@ fn main() -> Result<(), OrionError> {
         }
     }
 
-    let mut lexer = Lexer::new(contents);
+    let mut lexer = Lexer::new(&contents);
 
     match lexer.lex() {
         Ok(tokens) => {

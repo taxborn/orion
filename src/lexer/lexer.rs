@@ -1,69 +1,72 @@
 //! Lexer for the Orion compiler
+use std::collections::VecDeque;
+
 use crate::error::OrionError;
 use crate::lexer::tokens::*;
+use crate::lexer::*;
 
-#[derive(Debug)]
-struct Cursor {
-    input: String,
+struct Cursor<'a> {
+    input: &'a str,
     position: usize,
-    last_position: usize,
+    current_char: Option<char>,
 }
 
-impl Cursor {
-    fn new(input: String) -> Self {
+impl<'a> Cursor<'a> {
+    fn new(input: &'a str) -> Self {
         Self {
             input,
             position: 0,
-            last_position: 0,
+            current_char: None,
         }
     }
 
-    fn advance(&mut self) -> Option<char> {
-        let ret = self.input.chars().nth(self.position);
+    fn advance(&mut self) {
+        // only increment position if we know we've started
+        if self.current_char.is_some() {
+            self.position += 1;
+        } else {
+            println!("ignored incrementing position at init");
+        }
 
-        self.position += 1;
+        let current = self.input[self.position..].chars().next();
 
-        ret
+        println!("new current: {current:?}");
+
+        self.current_char = current;
     }
 
-    fn mark(&mut self) {
-        self.last_position = self.position
-    }
-
-    fn is_eof(&self) -> bool {
-        self.position >= self.input.len()
+    fn current_char(&self) -> Option<char> {
+        self.current_char
     }
 }
 
-#[derive(Debug)]
 pub struct Lexer<'a> {
-    cursor: Cursor,
-    current_token: Option<Token<'a>>,
+    cursor: Cursor<'a>,
 }
 
 impl<'a> Lexer<'a> {
-    pub fn new(file_contents: String) -> Self {
-        let cursor = Cursor::new(file_contents);
+    pub fn new(input: &'a str) -> Self {
+        let cursor = Cursor::new(input);
 
-        Self {
-            cursor,
-            current_token: None,
-        }
+        Self { cursor }
     }
 
-    pub fn lex(&mut self) -> Result<Vec<Token>, OrionError> {
-        let mut buf = vec![];
+    pub fn lex(&mut self) -> Result<VecDeque<Token<'a>>, OrionError> {
+        let mut buf = VecDeque::new();
 
-        while !self.cursor.is_eof() {
-            match self.cursor.advance() {
-                Some(chr) => match chr {
-                    '+' => buf.push(Token::new("x", TokenKind::Add, Span::new(0, 0, 0, 1))),
-                    '-' => buf.push(Token::new("x", TokenKind::Sub, Span::new(0, 1, 0, 2))),
-                    '\n' => continue,
-                    _ => return Err(OrionError::UnknownCharacter(chr)),
-                },
-                None => break,
+        self.cursor.advance();
+
+        while let Some(chr) = self.cursor.current_char() {
+            println!("char found: {chr}");
+
+            match chr {
+                '+' => buf.push_back(Token::new("+", TokenKind::Add, Span::empty())),
+                '-' => buf.push_back(Token::new("-", TokenKind::Sub, Span::empty())),
+                '\n' => continue,
+                _ => return Err(OrionError::UnknownCharacter(chr))
             }
+
+            self.cursor.advance();
         }
 
         Ok(buf)
