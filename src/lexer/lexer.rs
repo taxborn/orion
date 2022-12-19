@@ -52,6 +52,8 @@ impl<'a> Lexer<'a> {
         let mut buf = VecDeque::new();
 
         while let Some(slice) = self.cursor.current_slice {
+            let mut err = false;
+
             if slice.chars().all(char::is_whitespace) {
                 self.cursor.next();
                 continue;
@@ -201,10 +203,12 @@ impl<'a> Lexer<'a> {
                     _ => self
                         .append_token(&mut buf, Token::new(slice, TokenKind::Bang, Span::empty())),
                 },
-                _ => break,
+                _ => err = true,
             }
 
-            // return Err(OrionError::UnknownSlice(slice));
+            if err {
+                return Err(OrionError::UnknownSlice(slice));
+            }
         }
 
         Ok(buf)
