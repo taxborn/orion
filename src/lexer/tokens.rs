@@ -1,11 +1,54 @@
 //! Relevent structures and methods for the Tokens as part of lexical analysis
 #[derive(Debug)]
 pub enum TokenKind {
-    Add,
-    Inc,
-    Sub,
-    Dec,
-    Unknown,
+    LPar,              // (
+    RPar,              // )
+    LBracket,          // [
+    RBracket,          // ]
+    LBrace,            // {
+    RBrace,            // }
+    Eq,                // =
+    Colon,             // :
+    UntypedAssignment, // :=
+    Semi,              // ;
+    Dollar,            // $
+    Comma,             // ,
+    RightArrow,        // ->
+    LeftArrow,         // <-
+    DotDot,            // ..
+    Dot,               // .
+    Tilde,             // ~
+    ColonColon,        // ::
+
+    // Strong keywords
+    Return,            // return
+
+    // Literals
+    Char(char),
+    Str(String),
+
+    // Operators
+    Plus,              // +
+    Increment,         // ++
+    Minus,             // -
+    Decrement,         // --
+    Star,              // *
+    Slash,             // /
+    Percent,           // %
+    Ampersand,         // &
+    Bar,               // |
+    Hat,               // ^
+    GreaterGreater,    // >>
+    LesserLesser,      // <<
+    Lesser,            // <
+    LesserEq,          // <=
+    EqEq,              // =
+    GreaterEq,         // >=
+    Greater,           // >
+    BangEq,            // !=
+    Bang,              // !
+
+    Eof,               // \0 (?)
 }
 
 /// Coordinate type. Used to keep track of (line, column)
@@ -44,19 +87,23 @@ impl std::fmt::Display for Span {
 }
 
 #[derive(Debug)]
-pub struct Token<'a> {
-    literal: &'a str,
+pub struct Token<'tok> {
+    literal: &'tok str,
     kind: TokenKind,
     span: Span,
 }
 
-impl<'a> Token<'a> {
-    pub fn new(literal: &'a str, kind: TokenKind, span: Span) -> Self {
+impl<'tok> Token<'tok> {
+    pub fn new(literal: &'tok str, kind: TokenKind, span: Span) -> Self {
         Self {
             literal,
             kind,
             span,
         }
+    }
+
+    pub fn length(&self) -> usize {
+        self.literal.len()
     }
 }
 

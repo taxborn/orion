@@ -1,6 +1,12 @@
 //! Error types for the Orion language. Used to handle the different errors
 //! in the compiler, and how to handle displaying them.
 
+use std::{
+    error,
+    fmt::{Display, Formatter, Result},
+    io,
+};
+
 use self::OrionError::*;
 use colored::*;
 
@@ -12,17 +18,17 @@ pub enum OrionError<'a> {
     IOError,
     // LEXER ERRORS
     /// Unknown character was passed to the lexer
-    UnknownCharacter(&'a str),
+    UnknownSlice(&'a str),
     // PARSER ERRORS
     // ...
 }
 
 /// Implementing the error trait for Orion's custom error
-impl<'a> std::error::Error for OrionError<'a> {}
+impl<'a> error::Error for OrionError<'a> {}
 
 /// For now, generalize all std::io errors to the OrionError::IOError error
-impl<'a> From<std::io::Error> for OrionError<'a> {
-    fn from(_: std::io::Error) -> Self {
+impl<'a> From<io::Error> for OrionError<'a> {
+    fn from(_: io::Error) -> Self {
         OrionError::IOError
     }
 }
@@ -33,13 +39,13 @@ impl<'a> OrionError<'a> {
         match self {
             Unimplemented => "not implemented.".to_string(),
             IOError => "file not found.".to_string(),
-            UnknownCharacter(chr) => format!("unknown character: {chr}."),
+            UnknownSlice(slice) => format!("unknown slice: {slice}."),
         }
     }
 }
 
-impl<'a> std::fmt::Display for OrionError<'a> {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+impl<'a> Display for OrionError<'a> {
+    fn fmt(&self, f: &mut Formatter<'_>) -> Result {
         let prefix = "[ERROR]".red().bold();
 
         write!(f, "{prefix}: {}", self.message())
