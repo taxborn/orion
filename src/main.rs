@@ -48,6 +48,7 @@ fn main() -> Result<(), OrionError<'static>> {
 
     match lexer.lex() {
         Ok(tokens) => {
+            println!("{}", "tokens:".green().bold());
             for token in tokens {
                 println!("{token}");
             }
