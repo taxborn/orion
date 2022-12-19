@@ -1,7 +1,7 @@
 //! Lexer for the Orion compiler
-use std::collections::VecDeque;
 use crate::error::OrionError;
 use crate::lexer::tokens::*;
+use std::collections::VecDeque;
 
 struct Cursor<'a> {
     input: &'a str,
@@ -58,58 +58,83 @@ impl<'a> Lexer<'a> {
             }
 
             match slice {
-                "(" => buf.push_back(Token::new(slice, TokenKind::LPar, Span::empty())),
-                ")" => buf.push_back(Token::new(slice, TokenKind::LPar, Span::empty())),
-                "[" => buf.push_back(Token::new(slice, TokenKind::LBracket, Span::empty())),
-                "]" => buf.push_back(Token::new(slice, TokenKind::RBracket, Span::empty())),
-                "{" => buf.push_back(Token::new(slice, TokenKind::LBrace, Span::empty())),
-                "}" => buf.push_back(Token::new(slice, TokenKind::RBrace, Span::empty())),
-                "=" => buf.push_back(Token::new(slice, TokenKind::Eq, Span::empty())),
+                "(" => {
+                    self.append_token(&mut buf, Token::new(slice, TokenKind::LPar, Span::empty()))
+                }
+                ")" => {
+                    self.append_token(&mut buf, Token::new(slice, TokenKind::LPar, Span::empty()))
+                }
+                "[" => self.append_token(
+                    &mut buf,
+                    Token::new(slice, TokenKind::LBracket, Span::empty()),
+                ),
+                "]" => self.append_token(
+                    &mut buf,
+                    Token::new(slice, TokenKind::RBracket, Span::empty()),
+                ),
+                "{" => self.append_token(
+                    &mut buf,
+                    Token::new(slice, TokenKind::LBrace, Span::empty()),
+                ),
+                "}" => self.append_token(
+                    &mut buf,
+                    Token::new(slice, TokenKind::RBrace, Span::empty()),
+                ),
+                "=" => self.append_token(&mut buf, Token::new(slice, TokenKind::Eq, Span::empty())),
                 ":" => match self.cursor.peek() {
-                    Some(":") => {
-                        self.cursor.next();
-                        buf.push_back(Token::new("::", TokenKind::ColonColon, Span::empty()));
-                    }
-                    Some("=") => {
-                        self.cursor.next();
-                        buf.push_back(Token::new(
-                            ":=",
-                            TokenKind::UntypedAssignment,
-                            Span::empty(),
-                        ));
-                    }
-                    _ => buf.push_back(Token::new(slice, TokenKind::Colon, Span::empty())),
+                    Some(":") => self.append_token(
+                        &mut buf,
+                        Token::new("::", TokenKind::ColonColon, Span::empty()),
+                    ),
+                    Some("=") => self.append_token(
+                        &mut buf,
+                        Token::new(":=", TokenKind::UntypedAssignment, Span::empty()),
+                    ),
+                    _ => self
+                        .append_token(&mut buf, Token::new(slice, TokenKind::Colon, Span::empty())),
                 },
-                ";" => buf.push_back(Token::new(slice, TokenKind::Semi, Span::empty())),
-                "$" => buf.push_back(Token::new(slice, TokenKind::Dollar, Span::empty())),
-                "," => buf.push_back(Token::new(slice, TokenKind::Comma, Span::empty())),
+                ";" => {
+                    self.append_token(&mut buf, Token::new(slice, TokenKind::Semi, Span::empty()))
+                }
+                "$" => self.append_token(
+                    &mut buf,
+                    Token::new(slice, TokenKind::Dollar, Span::empty()),
+                ),
+                "," => {
+                    self.append_token(&mut buf, Token::new(slice, TokenKind::Comma, Span::empty()))
+                }
                 "-" => match self.cursor.peek() {
-                    Some("-") => {
-                        self.cursor.next();
-                        buf.push_back(Token::new("--", TokenKind::Decrement, Span::empty()));
-                    }
-                    Some(">") => {
-                        self.cursor.next();
-                        buf.push_back(Token::new("->", TokenKind::ColonColon, Span::empty()));
-                    }
-                    _ => buf.push_back(Token::new(slice, TokenKind::Minus, Span::empty())),
+                    Some("-") => self.append_token(
+                        &mut buf,
+                        Token::new("--", TokenKind::Decrement, Span::empty()),
+                    ),
+                    Some(">") => self.append_token(
+                        &mut buf,
+                        Token::new("->", TokenKind::RightArrow, Span::empty()),
+                    ),
+                    _ => self
+                        .append_token(&mut buf, Token::new(slice, TokenKind::Minus, Span::empty())),
                 },
                 "+" => match self.cursor.peek() {
-                    Some("+") => {
-                        self.cursor.next();
-                        buf.push_back(Token::new("++", TokenKind::Increment, Span::empty()));
-                    }
-                    _ => buf.push_back(Token::new(slice, TokenKind::Plus, Span::empty())),
+                    Some("+") => self.append_token(
+                        &mut buf,
+                        Token::new("++", TokenKind::Increment, Span::empty()),
+                    ),
+                    _ => self
+                        .append_token(&mut buf, Token::new(slice, TokenKind::Plus, Span::empty())),
                 },
                 "." => match self.cursor.peek() {
-                    Some(".") => {
-                        self.cursor.next();
-                        buf.push_back(Token::new("..", TokenKind::DotDot, Span::empty()));
-                    }
-                    _ => buf.push_back(Token::new(slice, TokenKind::Dot, Span::empty())),
+                    Some(".") => self
+                        .append_token(&mut buf, Token::new("..", TokenKind::DotDot, Span::empty())),
+                    _ => self
+                        .append_token(&mut buf, Token::new(slice, TokenKind::Dot, Span::empty())),
                 },
-                "~" => buf.push_back(Token::new(slice, TokenKind::Tilde, Span::empty())),
-                "*" => buf.push_back(Token::new(slice, TokenKind::Star, Span::empty())),
+                "~" => {
+                    self.append_token(&mut buf, Token::new(slice, TokenKind::Tilde, Span::empty()))
+                }
+                "*" => {
+                    self.append_token(&mut buf, Token::new(slice, TokenKind::Star, Span::empty()))
+                }
                 "/" => match self.cursor.peek() {
                     Some("/") => {
                         // TODO: Single line comment
@@ -121,41 +146,58 @@ impl<'a> Lexer<'a> {
                         self.cursor.next();
                         //buf.push_back(Token::new("..", TokenKind::DotDot, Span::empty()));
                     }
-                    _ => buf.push_back(Token::new(slice, TokenKind::Slash, Span::empty())),
+                    _ => self
+                        .append_token(&mut buf, Token::new(slice, TokenKind::Slash, Span::empty())),
                 },
-                "%" => buf.push_back(Token::new(slice, TokenKind::Percent, Span::empty())),
-                "&" => buf.push_back(Token::new(slice, TokenKind::Ampersand, Span::empty())),
-                "|" => buf.push_back(Token::new(slice, TokenKind::Bar, Span::empty())),
-                "^" => buf.push_back(Token::new(slice, TokenKind::Hat, Span::empty())),
+                "%" => self.append_token(
+                    &mut buf,
+                    Token::new(slice, TokenKind::Percent, Span::empty()),
+                ),
+                "&" => self.append_token(
+                    &mut buf,
+                    Token::new(slice, TokenKind::Ampersand, Span::empty()),
+                ),
+                "|" => {
+                    self.append_token(&mut buf, Token::new(slice, TokenKind::Bar, Span::empty()))
+                }
+                "^" => {
+                    self.append_token(&mut buf, Token::new(slice, TokenKind::Hat, Span::empty()))
+                }
                 ">" => match self.cursor.peek() {
-                    Some(">") => {
-                        self.cursor.next();
-                        buf.push_back(Token::new(">>", TokenKind::GreaterGreater, Span::empty()));
-                    }
-                    Some("=") => {
-                        self.cursor.next();
-                        buf.push_back(Token::new(">=", TokenKind::GreaterEq, Span::empty()));
-                    }
-                    _ => buf.push_back(Token::new(slice, TokenKind::Greater, Span::empty())),
+                    Some(">") => self.append_token(
+                        &mut buf,
+                        Token::new(">>", TokenKind::GreaterGreater, Span::empty()),
+                    ),
+                    Some("=") => self.append_token(
+                        &mut buf,
+                        Token::new(">=", TokenKind::GreaterEq, Span::empty()),
+                    ),
+                    _ => self.append_token(
+                        &mut buf,
+                        Token::new(slice, TokenKind::Greater, Span::empty()),
+                    ),
                 },
                 "<" => match self.cursor.peek() {
-                    Some("<") => {
-                        self.cursor.next();
-                        buf.push_back(Token::new("<<", TokenKind::LesserLesser, Span::empty()));
-                    }
-                    Some("=") => {
-                        self.cursor.next();
-                        buf.push_back(Token::new("<=", TokenKind::LesserEq, Span::empty()));
-                    }
-                    _ => buf.push_back(Token::new(slice, TokenKind::Lesser, Span::empty())),
+                    Some("<") => self.append_token(
+                        &mut buf,
+                        Token::new("<<", TokenKind::LesserLesser, Span::empty()),
+                    ),
+                    Some("=") => self.append_token(
+                        &mut buf,
+                        Token::new("<=", TokenKind::LesserEq, Span::empty()),
+                    ),
+                    Some("-") => self.append_token(
+                        &mut buf,
+                        Token::new("<-", TokenKind::LeftArrow, Span::empty()),
+                    ),
+                    _ => self.append_token(
+                        &mut buf,
+                        Token::new(slice, TokenKind::Lesser, Span::empty()),
+                    ),
                 },
                 "!" => match self.cursor.peek() {
-                    Some("=") => {
-                        self.append_token(
-                            &mut buf,
-                            Token::new("!=", TokenKind::BangEq, Span::empty()),
-                        );
-                    }
+                    Some("=") => self
+                        .append_token(&mut buf, Token::new("!=", TokenKind::BangEq, Span::empty())),
                     _ => self
                         .append_token(&mut buf, Token::new(slice, TokenKind::Bang, Span::empty())),
                 },
