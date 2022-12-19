@@ -1,5 +1,5 @@
 //! Relevent structures and methods for the Tokens as part of lexical analysis
-use std::fmt::{Display, Formatter, Result, Debug};
+use std::fmt::{Debug, Display, Formatter, Result};
 
 #[derive(Debug)]
 pub enum TokenKind {
@@ -28,7 +28,7 @@ pub enum TokenKind {
     // Literals
     Char(char),
     Str(String),
-    Identifier,
+    Identifier(String),
 
     // Operators
     Plus,           // +
@@ -42,12 +42,12 @@ pub enum TokenKind {
     Bar,            // |
     Hat,            // ^
     GreaterGreater, // >>
-    LesserLesser,   // <<
-    Lesser,         // <
-    LesserEq,       // <=
-    EqEq,           // =
     GreaterEq,      // >=
     Greater,        // >
+    LesserLesser,   // <<
+    LesserEq,       // <=
+    Lesser,         // <
+    EqEq,           // ==
     BangEq,         // !=
     Bang,           // !
 
@@ -108,10 +108,10 @@ impl<'tok> Token<'tok> {
         self.literal.len()
     }
 
-    pub fn identifier(literal: &'tok str, span: Span) -> Self {
+    pub fn identifier(literal: &'tok str, ident: String, span: Span) -> Self {
         Self {
             literal,
-            kind: TokenKind::Identifier,
+            kind: TokenKind::Identifier(ident),
             span,
         }
     }
@@ -119,7 +119,52 @@ impl<'tok> Token<'tok> {
 
 impl Display for Token<'_> {
     fn fmt(&self, f: &mut Formatter<'_>) -> Result {
-        write!(f, "token: {}", self.literal)
+        match &self.kind {
+            TokenKind::LPar => write!(f, "("),
+            TokenKind::RPar => write!(f, ")"),
+            TokenKind::LBracket => write!(f, "["),
+            TokenKind::RBracket => write!(f, "]"),
+            TokenKind::LBrace => write!(f, "{{"),
+            TokenKind::RBrace => write!(f, "}}"),
+            TokenKind::Eq => write!(f, "="),
+            TokenKind::Colon => write!(f, ":"),
+            TokenKind::UntypedAssignment => write!(f, ":="),
+            TokenKind::Semi => write!(f, ";"),
+            TokenKind::Dollar => write!(f, "$"),
+            TokenKind::Comma => write!(f, ","),
+            TokenKind::RightArrow => write!(f, "->"),
+            TokenKind::LeftArrow => write!(f, "<-"),
+            TokenKind::DotDot => write!(f, ".."),
+            TokenKind::Dot => write!(f, "."),
+            TokenKind::Tilde => write!(f, "~"),
+            TokenKind::ColonColon => write!(f, "::"),
+
+            TokenKind::Return => write!(f, "return"),
+
+            TokenKind::Char(chr) => write!(f, "Char({chr})"),
+            TokenKind::Str(str) => write!(f, "String(\"{str}\")"),
+            TokenKind::Identifier(str) => write!(f, "Identifier(\"{str}\")"),
+
+            TokenKind::Plus => write!(f, "+"),
+            TokenKind::Increment => write!(f, "++"),
+            TokenKind::Minus => write!(f, "-"),
+            TokenKind::Decrement => write!(f, "--"),
+            TokenKind::Star => write!(f, "*"),
+            TokenKind::Slash => write!(f, "/"),
+            TokenKind::Percent => write!(f, "%"),
+            TokenKind::Ampersand => write!(f, "&"),
+            TokenKind::Bar => write!(f, "|"),
+            TokenKind::Hat => write!(f, "^"),
+            TokenKind::GreaterGreater => write!(f, ">>"),
+            TokenKind::GreaterEq => write!(f, ">="),
+            TokenKind::Greater => write!(f, ">"),
+            TokenKind::LesserLesser => write!(f, "<<"),
+            TokenKind::LesserEq => write!(f, "<="),
+            TokenKind::Lesser => write!(f, "<"),
+            TokenKind::BangEq => write!(f, "!="),
+            TokenKind::Bang => write!(f, "!"),
+            _ => write!(f, "not implemented"),
+        }
     }
 }
 

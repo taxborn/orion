@@ -56,16 +56,11 @@ impl<'a> Lexer<'a> {
         let mut buf = VecDeque::new();
 
         while let Some(slice) = self.cursor.current_slice {
-            let mut err = false;
-
             if slice.chars().all(char::is_whitespace) {
                 self.cursor.next();
                 continue;
             }
 
-            // TODO: To remove the &mut buf from the function, we could just have this match
-            // statement return the generated token, and inline the append_token_to function to
-            // after this match statement.
             let token = match slice {
                 "(" => Token::new(slice, TokenKind::LPar, Span::empty()),
                 ")" => Token::new(slice, TokenKind::LPar, Span::empty()),
