@@ -1,4 +1,6 @@
 //! Relevent structures and methods for the Tokens as part of lexical analysis
+use std::fmt::{Display, Formatter, Result};
+
 #[derive(Debug)]
 pub enum TokenKind {
     LPar,              // (
@@ -21,34 +23,35 @@ pub enum TokenKind {
     ColonColon,        // ::
 
     // Strong keywords
-    Return,            // return
+    Return, // return
 
     // Literals
     Char(char),
     Str(String),
+    Identifier,
 
     // Operators
-    Plus,              // +
-    Increment,         // ++
-    Minus,             // -
-    Decrement,         // --
-    Star,              // *
-    Slash,             // /
-    Percent,           // %
-    Ampersand,         // &
-    Bar,               // |
-    Hat,               // ^
-    GreaterGreater,    // >>
-    LesserLesser,      // <<
-    Lesser,            // <
-    LesserEq,          // <=
-    EqEq,              // =
-    GreaterEq,         // >=
-    Greater,           // >
-    BangEq,            // !=
-    Bang,              // !
+    Plus,           // +
+    Increment,      // ++
+    Minus,          // -
+    Decrement,      // --
+    Star,           // *
+    Slash,          // /
+    Percent,        // %
+    Ampersand,      // &
+    Bar,            // |
+    Hat,            // ^
+    GreaterGreater, // >>
+    LesserLesser,   // <<
+    Lesser,         // <
+    LesserEq,       // <=
+    EqEq,           // =
+    GreaterEq,      // >=
+    Greater,        // >
+    BangEq,         // !=
+    Bang,           // !
 
-    Eof,               // \0 (?)
+    Eof, // \0 (?)
 }
 
 /// Coordinate type. Used to keep track of (line, column)
@@ -76,8 +79,8 @@ impl Span {
     }
 }
 
-impl std::fmt::Display for Span {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+impl Display for Span {
+    fn fmt(&self, f: &mut Formatter<'_>) -> Result {
         write!(
             f,
             "{}:{}->{}:{}",
@@ -105,10 +108,18 @@ impl<'tok> Token<'tok> {
     pub fn length(&self) -> usize {
         self.literal.len()
     }
+
+    pub fn identifier(literal: &'tok str, span: Span) -> Self {
+        Self {
+            literal,
+            kind: TokenKind::Identifier,
+            span,
+        }
+    }
 }
 
-impl std::fmt::Display for Token<'_> {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+impl Display for Token<'_> {
+    fn fmt(&self, f: &mut Formatter<'_>) -> Result {
         write!(f, "{:?}[\"{}\"]@[{}]", self.kind, self.literal, self.span)
     }
 }
