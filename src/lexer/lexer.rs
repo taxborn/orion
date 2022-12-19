@@ -63,6 +63,9 @@ impl<'a> Lexer<'a> {
                 continue;
             }
 
+            // TODO: To remove the &mut buf from the function, we could just have this match
+            // statement return the generated token, and inline the append_token_to function to
+            // after this match statement.
             match slice {
                 "(" => self.append_token_to(&mut buf, slice, TokenKind::LPar),
                 ")" => self.append_token_to(&mut buf, slice, TokenKind::LPar),
@@ -126,8 +129,12 @@ impl<'a> Lexer<'a> {
                     Some("=") => self.append_token_to(&mut buf, "!=", TokenKind::BangEq),
                     _ => self.append_token_to(&mut buf, slice, TokenKind::Bang),
                 },
+                // TODO: This shouldn't result in an error
                 _ => err = true,
             }
+
+            // Check for identifiers
+            //   - Check for strong keywords
 
             if err {
                 return Err(OrionError::UnknownSlice(slice));
