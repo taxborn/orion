@@ -1,5 +1,5 @@
 //! Relevent structures and methods for the Tokens as part of lexical analysis
-use std::fmt::{Display, Formatter, Result};
+use std::fmt::{Display, Formatter, Result, Debug};
 
 #[derive(Debug)]
 pub enum TokenKind {
@@ -89,7 +89,6 @@ impl Display for Span {
     }
 }
 
-#[derive(Debug)]
 pub struct Token<'tok> {
     literal: &'tok str,
     kind: TokenKind,
@@ -120,6 +119,12 @@ impl<'tok> Token<'tok> {
 
 impl Display for Token<'_> {
     fn fmt(&self, f: &mut Formatter<'_>) -> Result {
-        write!(f, "{:?}[\"{}\"]@[{}]", self.kind, self.literal, self.span)
+        write!(f, "token: {}", self.literal)
+    }
+}
+
+impl Debug for Token<'_> {
+    fn fmt(&self, f: &mut Formatter<'_>) -> Result {
+        write!(f, "{:?}[\"{}\"]@[{}]", self.kind, self, self.span)
     }
 }

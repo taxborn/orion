@@ -50,7 +50,7 @@ fn main() -> Result<(), OrionError<'static>> {
         Ok(tokens) => {
             println!("{}", "tokens:".green().bold());
             for token in tokens {
-                println!("{token}");
+                println!("{token:?}");
             }
         }
         Err(error) => {
