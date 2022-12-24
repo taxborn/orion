@@ -2,6 +2,7 @@ use clap::Parser;
 use colored::*;
 use orion::error::OrionError;
 use orion::lexer::lexer::Lexer;
+use orion::lexer::tokens::*;
 use std::path::PathBuf;
 
 #[derive(Parser, Debug)]
@@ -45,21 +46,19 @@ fn main() -> Result<(), OrionError<'static>> {
     }
 
     let mut lexer = Lexer::new(&contents);
+    let mut toks: Vec<Token> = vec![];
 
-    match lexer.lex() {
-        Ok(tokens) => {
-            println!("{}", "tokens:".green().bold());
-            for token in tokens {
-                println!("{token:?}");
-            }
-        }
-        Err(error) => {
-            println!("{error}");
+    loop {
+        let tok = lexer.next_token();
 
-            // exit here?
-            std::process::exit(-1);
+        if tok.kind != TokenKind::Eof {
+            toks.push(tok);
+        } else {
+            break;
         }
     }
+
+    println!("{toks:?}");
 
     Ok(())
 }

@@ -1,142 +1,366 @@
 //! Lexer for the Orion compiler
-use crate::error::OrionError;
 use crate::lexer::tokens::*;
-use std::collections::VecDeque;
-
-struct Cursor<'a> {
-    input: &'a str,
-    current_slice: Option<&'a str>,
-    start: usize,
-    end: usize,
-}
-
-impl<'a> Cursor<'a> {
-    fn new(input: &'a str) -> Self {
-        Self {
-            input,
-            current_slice: input.get(..1),
-            start: 0,
-            end: 1,
-        }
-    }
-
-    fn next(&mut self) {
-        self.start += 1;
-        self.end += 1;
-        self.current_slice = self.input.get(self.start..self.end);
-    }
-
-    fn next_by(&mut self, amount: usize) {
-        self.start += amount;
-        self.end += amount;
-        self.current_slice = self.input.get(self.start..self.end);
-    }
-
-    fn peek(&self) -> Option<&str> {
-        self.input.get(self.end..self.end + 1)
-    }
-
-    fn to_span(&self) -> Span {
-        Span::empty()
-    }
-}
+use std::iter::Peekable;
+use std::str::CharIndices;
 
 pub struct Lexer<'a> {
-    cursor: Cursor<'a>,
+    input: &'a str,
+    iter: Peekable<CharIndices<'a>>,
+
+    c: char,
+    ci: usize,
+
+    error: bool,
 }
 
 impl<'a> Lexer<'a> {
     pub fn new(input: &'a str) -> Self {
-        let cursor = Cursor::new(input);
+        let mut lex = Self {
+            input,
+            iter: input.char_indices().peekable(),
+            c: '\x00',
+            ci: 0,
+            error: false,
+        };
 
-        Self { cursor }
+        lex.scan_char();
+
+        lex
     }
 
-    pub fn lex(&mut self) -> Result<VecDeque<Token<'a>>, OrionError> {
-        let mut buf = VecDeque::new();
+    fn scan_char(&mut self) {
+        if let Some((index, chr)) = self.iter.next() {
+            self.ci = index;
+            self.c = chr;
+        } else {
+            self.ci = self.input.len();
+            self.c = '\x00';
+        }
+    }
 
-        while let Some(slice) = self.cursor.current_slice {
-            if slice.chars().all(char::is_whitespace) {
-                self.cursor.next();
-                continue;
-            }
+    pub fn next_token(&mut self) -> Token<'a> {
+        self.skip_nontokens();
 
-            let token = match slice {
-                "(" => Token::new(slice, TokenKind::LPar, Span::empty()),
-                ")" => Token::new(slice, TokenKind::LPar, Span::empty()),
-                "[" => Token::new(slice, TokenKind::LBracket, Span::empty()),
-                "]" => Token::new(slice, TokenKind::RBracket, Span::empty()),
-                "{" => Token::new(slice, TokenKind::LBrace, Span::empty()),
-                "}" => Token::new(slice, TokenKind::RBrace, Span::empty()),
-                "=" => Token::new(slice, TokenKind::Eq, Span::empty()),
-                ":" => match self.cursor.peek() {
-                    Some(":") => Token::new("::", TokenKind::ColonColon, Span::empty()),
-                    Some("=") => Token::new(":=", TokenKind::UntypedAssignment, Span::empty()),
-                    _ => Token::new(slice, TokenKind::Colon, Span::empty()),
-                },
-                ";" => Token::new(slice, TokenKind::Semi, Span::empty()),
-                "$" => Token::new(slice, TokenKind::Dollar, Span::empty()),
-                "," => Token::new(slice, TokenKind::Comma, Span::empty()),
-                "-" => match self.cursor.peek() {
-                    Some("-") => Token::new("--", TokenKind::Decrement, Span::empty()),
-                    Some(">") => Token::new("->", TokenKind::RightArrow, Span::empty()),
-                    _ => Token::new(slice, TokenKind::Minus, Span::empty()),
-                },
-                "+" => match self.cursor.peek() {
-                    Some("+") => Token::new("++", TokenKind::Increment, Span::empty()),
-                    _ => Token::new(slice, TokenKind::Plus, Span::empty()),
-                },
-                "." => match self.cursor.peek() {
-                    Some(".") => Token::new("..", TokenKind::DotDot, Span::empty()),
-                    _ => Token::new(slice, TokenKind::Dot, Span::empty()),
-                },
-                "~" => Token::new(slice, TokenKind::Tilde, Span::empty()),
-                "*" => Token::new(slice, TokenKind::Star, Span::empty()),
-                "/" => match self.cursor.peek() {
-                    /*
-                    Some("/") => {
-                        // TODO: Single line comment
-                        self.cursor.next();
-                        //buf.push_back(Token::new("..", TokenKind::DotDot, self.cursor.to_span()));
-                    }
-                    Some("*") => {
-                        // TODO: Multi line comment
-                        self.cursor.next();
-                        //buf.push_back(Token::new("..", TokenKind::DotDot, self.cursor.to_span()));
-                    }
-                    */
-                    _ => Token::new(slice, TokenKind::Slash, Span::empty()),
-                },
-                "%" => Token::new(slice, TokenKind::Percent, Span::empty()),
-                "&" => Token::new(slice, TokenKind::Ampersand, Span::empty()),
-                "|" => Token::new(slice, TokenKind::Bar, Span::empty()),
-                "^" => Token::new(slice, TokenKind::Hat, Span::empty()),
-                ">" => match self.cursor.peek() {
-                    Some(">") => Token::new(">>", TokenKind::GreaterGreater, Span::empty()),
-                    Some("=") => Token::new(">=", TokenKind::GreaterEq, Span::empty()),
-                    _ => Token::new(slice, TokenKind::Greater, Span::empty()),
-                },
-                "<" => match self.cursor.peek() {
-                    Some("<") => Token::new("<<", TokenKind::LesserLesser, Span::empty()),
-                    Some("=") => Token::new("<=", TokenKind::LesserEq, Span::empty()),
-                    Some("-") => Token::new("<-", TokenKind::LeftArrow, Span::empty()),
-                    _ => Token::new(slice, TokenKind::Lesser, Span::empty()),
-                },
-                "!" => match self.cursor.peek() {
-                    Some("=") => Token::new("!=", TokenKind::BangEq, Span::empty()),
-                    _ => Token::new(slice, TokenKind::Bang, Span::empty()),
-                },
-                // Check for identifiers
-                //   - Check for strong keywords
-                // TODO: This shouldn't result in an error
-                _ => return Err(OrionError::UnknownSlice(slice)),
+        if self.is_at_end() {
+            return Token {
+                kind: TokenKind::Eof,
+                loc: Location::empty(),
             };
-
-            self.cursor.next_by(token.length());
-
-            buf.push_back(token);
         }
 
-        Ok(buf)
+        let loc = Location::from_input(&self.input[..self.ci]);
+
+        let kind = match self.c {
+            '"' => {
+                return self.scan_quote();
+            }
+            '(' => TokenKind::LPar,
+            ')' => TokenKind::RPar,
+            '[' => TokenKind::LBracket,
+            ']' => TokenKind::RBracket,
+            '{' => TokenKind::LBrace,
+            '}' => TokenKind::RBrace,
+            ':' => {
+                if let Some((_, chr)) = self.iter.peek() {
+                    if *chr == '=' {
+                        self.scan_char();
+                        self.scan_char();
+                        return Token {
+                            kind: TokenKind::UntypedAssignment,
+                            loc,
+                        };
+                    } else if *chr == ':' {
+                        self.scan_char();
+                        self.scan_char();
+                        return Token {
+                            kind: TokenKind::ColonColon,
+                            loc,
+                        };
+                    }
+                }
+
+                TokenKind::Colon
+            }
+            ';' => TokenKind::Semi,
+            '$' => TokenKind::Dollar,
+            ',' => TokenKind::Comma,
+            '-' => {
+                if let Some((_, chr)) = self.iter.peek() {
+                    if *chr == '>' {
+                        self.scan_char();
+                        self.scan_char();
+                        return Token {
+                            kind: TokenKind::RightArrow,
+                            loc,
+                        };
+                    } else if *chr == '-' {
+                        self.scan_char();
+                        self.scan_char();
+                        return Token {
+                            kind: TokenKind::Decrement,
+                            loc,
+                        };
+                    }
+                }
+
+                TokenKind::Minus
+            }
+            '<' => {
+                if let Some((_, chr)) = self.iter.peek() {
+                    if *chr == '-' {
+                        self.scan_char();
+                        self.scan_char();
+                        return Token {
+                            kind: TokenKind::LeftArrow,
+                            loc,
+                        };
+                    } else if *chr == '<' {
+                        self.scan_char();
+                        self.scan_char();
+                        return Token {
+                            kind: TokenKind::LesserLesser,
+                            loc,
+                        };
+                    } else if *chr == '=' {
+                        self.scan_char();
+                        self.scan_char();
+                        return Token {
+                            kind: TokenKind::LesserEq,
+                            loc,
+                        };
+                    }
+                }
+
+                TokenKind::Lesser
+            }
+            '>' => {
+                if let Some((_, chr)) = self.iter.peek() {
+                    if *chr == '>' {
+                        self.scan_char();
+                        self.scan_char();
+                        return Token {
+                            kind: TokenKind::GreaterGreater,
+                            loc,
+                        };
+                    } else if *chr == '=' {
+                        self.scan_char();
+                        self.scan_char();
+                        return Token {
+                            kind: TokenKind::GreaterEq,
+                            loc,
+                        };
+                    }
+                }
+
+                TokenKind::Greater
+            }
+            '.' => {
+                if let Some((_, chr)) = self.iter.peek() {
+                    if *chr == '.' {
+                        self.scan_char();
+                        self.scan_char();
+                        return Token {
+                            kind: TokenKind::DotDot,
+                            loc,
+                        };
+                    }
+                }
+
+                TokenKind::Dot
+            }
+            '~' => TokenKind::Tilde,
+            '+' => {
+                if let Some((_, chr)) = self.iter.peek() {
+                    if *chr == '+' {
+                        self.scan_char();
+                        self.scan_char();
+                        return Token {
+                            kind: TokenKind::Increment,
+                            loc,
+                        };
+                    }
+                }
+
+                TokenKind::Plus
+            }
+            '*' => TokenKind::Star,
+            '/' => {
+                if let Some((_, chr)) = self.iter.peek() {
+                    if *chr == '/' {
+                        self.scan_char();
+                        self.scan_char();
+                        return self.scan_comment();
+                    }
+                }
+
+                TokenKind::Slash
+            }
+            '%' => TokenKind::Percent,
+            '&' => TokenKind::Ampersand,
+            '|' => TokenKind::Bar,
+            '^' => TokenKind::Hat,
+            '!' => {
+                if let Some((_, chr)) = self.iter.peek() {
+                    if *chr == '=' {
+                        self.scan_char();
+                        self.scan_char();
+                        return Token {
+                            kind: TokenKind::BangEq,
+                            loc,
+                        };
+                    }
+                }
+
+                TokenKind::Bang
+            }
+            '=' => {
+                if let Some((_, chr)) = self.iter.peek() {
+                    if *chr == '=' {
+                        self.scan_char();
+                        self.scan_char();
+                        return Token {
+                            kind: TokenKind::EqEq,
+                            loc,
+                        };
+                    }
+                }
+
+                TokenKind::Eq
+            }
+            _ => TokenKind::Error,
+        };
+
+        if kind != TokenKind::Error {
+            let token = Token { kind, loc };
+
+            self.scan_char();
+
+            token
+        } else if self.c.is_alphabetic() || self.c == '_' {
+            self.scan_identifier()
+        } else if self.c.is_digit(10) {
+            self.scan_number()
+        } else {
+            self.error_token()
+        }
+    }
+
+    fn scan_identifier(&mut self) -> Token<'a> {
+        let startpos = self.ci;
+        let loc = Location::from_input(&self.input[..self.ci]);
+
+        // TODO: Add support for numbers in identifiers, we already passed
+        // the first check.
+        while self.c.is_alphabetic() || self.c == '_' {
+            self.scan_char();
+        }
+
+        let input = &self.input[startpos..self.ci];
+
+        if input == "return" {
+            return Token {
+                kind: TokenKind::Keyword(input),
+                loc,
+            };
+        }
+
+        Token {
+            kind: TokenKind::Identifier(input),
+            loc,
+        }
+    }
+
+    fn scan_number(&mut self) -> Token<'a> {
+        let startpos = self.ci;
+
+        while self.c.is_digit(10) {
+            self.scan_char();
+        }
+
+        let loc = Location::from_input(&self.input[..self.ci]);
+
+        Token {
+            kind: TokenKind::Identifier(&self.input[startpos..self.ci]),
+            loc,
+        }
+    }
+
+    fn scan_quote(&mut self) -> Token<'a> {
+        let startpos = self.ci;
+        let loc = Location::from_input(&self.input[..self.ci]);
+
+        // consume leading quote
+        self.scan_char();
+
+        while !self.is_at_end() && self.c != '"' {
+            self.scan_char();
+        }
+
+        if self.c != '"' {
+            // Terminating '"' not found is an error
+            self.error_token()
+        } else {
+            // consume trailing quote
+            self.scan_char();
+
+            Token {
+                kind: TokenKind::Quote(&self.input[startpos..self.ci]),
+                loc,
+            }
+        }
+    }
+
+    fn scan_comment(&mut self) -> Token<'a> {
+        let startpos = self.ci;
+        let loc = Location::from_input(&self.input[..self.ci]);
+
+        while !self.is_at_end() && self.c != '\n' {
+            self.scan_char();
+        }
+
+        Token {
+            kind: TokenKind::Comment(&self.input[startpos..self.ci]),
+            loc,
+        }
+    }
+
+    fn error_token(&mut self) -> Token<'a> {
+        self.error = true;
+        let loc = Location::from_input(&self.input[..self.ci]);
+
+        Token {
+            kind: TokenKind::Error,
+            loc,
+        }
+    }
+
+    fn is_at_end(&self) -> bool {
+        self.ci >= self.input.len()
+    }
+
+    fn skip_nontokens(&mut self) {
+        while self.c == ' ' || self.c == '\t' || self.c == '\r' || self.c == '\n' {
+            self.scan_char();
+        }
+    }
+}
+
+impl<'a> Iterator for Lexer<'a> {
+    type Item = Token<'a>;
+
+    fn next(&mut self) -> Option<Self::Item> {
+        if self.error {
+            return None;
+        }
+
+        // Get the next token
+        let token = self.next_token();
+
+        // If we are at the end of the file, we don't
+        if token.kind == TokenKind::Eof {
+            None
+        } else {
+            Some(token)
+        }
     }
 }
