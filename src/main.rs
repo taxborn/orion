@@ -12,7 +12,7 @@ struct Args {
     file: Option<PathBuf>,
 }
 
-fn main() -> Result<(), OrionError<'static>> {
+fn main() -> Result<(), OrionError> {
     let contents;
     let args = Args::parse();
     let prefix = "[lexer]".green().bold();
@@ -48,13 +48,20 @@ fn main() -> Result<(), OrionError<'static>> {
 
     println!("{}", "[tokens found]:".green().bold());
     // Lexer implements Iterator, so we can loop over all tokens.
+    let mut count = 0;
     for token in lexer.by_ref() {
+        count += 1;
         println!("{token:?}");
     }
+    println!("{count} tokens found.");
+
 
     // Check if there were any errors during lexing
     if lexer.error {
         println!("{}", "there was an error in lexing.".red().bold());
+        // Maybe eventually I'll implement utilizing OrionError in the lexer,
+        // for now, I want to get things moving.
+        // https://users.rust-lang.org/t/handling-errors-from-iterators/2551/7
         return Err(OrionError::Unimplemented);
     } else {
         println!("{}", "lexing successful.".white().bold());
