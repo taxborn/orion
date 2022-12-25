@@ -61,19 +61,12 @@ impl Location {
         Self(line, col)
     }
 
-    pub fn empty() -> Self {
-        Self(0, 0)
-    }
-
     pub fn from_input(input: &str) -> Self {
-        let lines: usize = input
-            .chars()
-            .filter(|&ch| ch == '\n')
-            .count();
+        let lines: usize = input.chars().filter(|&ch| ch == '\n').count();
 
         let cols = match input.rfind('\n') {
             Some(index) => input.len() - index - 1,
-            None => input.len()
+            None => input.len(),
         };
 
         Self(lines + 1, cols + 1)
@@ -96,6 +89,7 @@ impl<'tok> Token<'tok> {
         Self { kind, loc }
     }
 
+    /// The token's length
     pub fn length(&self) -> usize {
         let lexemme = format!("{self}");
 
@@ -126,10 +120,10 @@ impl Display for Token<'_> {
             TokenKind::Tilde => write!(f, "~"),
             TokenKind::ColonColon => write!(f, "::"),
 
-            TokenKind::Comment(str) => write!(f, "\"{str}\""),
+            TokenKind::Comment(str) => write!(f, "{str}"),
             TokenKind::Identifier(str) => write!(f, "{str}"),
-            TokenKind::Keyword(str) => write!(f, "[{str}]"),
-            TokenKind::Number(str) => write!(f, "#{str}"),
+            TokenKind::Keyword(str) => write!(f, "{str}"),
+            TokenKind::Number(str) => write!(f, "{str}"),
             TokenKind::Quote(str) => write!(f, "{str}"),
 
             TokenKind::Plus => write!(f, "+"),
@@ -157,13 +151,6 @@ impl Display for Token<'_> {
 
 impl Debug for Token<'_> {
     fn fmt(&self, f: &mut Formatter<'_>) -> Result {
-        write!(
-            f,
-            "{:?}[\"{}\"]@[{}] (sized {})",
-            self.kind,
-            self,
-            self.loc,
-            self.length()
-        )
+        write!(f, "{:?}('{}') @ {}", self.kind, self, self.loc,)
     }
 }

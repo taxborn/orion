@@ -234,9 +234,7 @@ impl<'a> Lexer<'a> {
         let startpos = self.ci;
         let loc = Location::from_input(&self.input[..self.ci]);
 
-        // TODO: Add support for numbers in identifiers, we already passed
-        // the first check.
-        while self.c.is_alphabetic() || self.c == '_' {
+        while self.c.is_alphabetic() || self.c == '_' || self.c.is_ascii_digit() {
             self.scan_char();
         }
 
