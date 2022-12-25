@@ -1,9 +1,9 @@
 # :sparkles: The Orion programming language
-What is intended to be a strongly-typed compile language. With the goal to be generating assembly 
+What is intended to be a strongly-typed compile language. With the goal to be generating assembly
 (or transpile to C in the early days, who knows, I haven't written the code generator yet)
 
 ## TODO
-Currently, there is just about everything to do. Currently working on the [Lexer](./src/lexer/lexer.rs) and determining the syntax
+Currently, there is just about everything to do. Currently working on planning the parser and determining the syntax
 in the `examples/` directory, but once I make progress I will be able to update this on whatever I am researching
 
 A few other house-keeping things I want to do:
@@ -12,7 +12,7 @@ A few other house-keeping things I want to do:
 - Be able to generate [benchmarks](https://doc.rust-lang.org/cargo/commands/cargo-bench.html) to keep track of performance over time
 
 ## :boom: Getting the project started
-During the early stages I'll be creating examples of what I want the language to look like, and 
+During the early stages I'll be creating examples of what I want the language to look like, and
 hopefully from there generate an EBNF form of the language.
 
 **Examples:**

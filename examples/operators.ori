@@ -1,8 +1,8 @@
-++--!=
---:=
-**
-a : u32 = 5;
-
-123684234
-
-str "aaa"
+5 + 5 // addition
+5 - 5 // subtraction
+5 * 5 // multiplication
+5 / 5 // multiplication
+5 ** 5 // exponentiation ?? (tbd, might be a std. library function?)
+5 ^ 5 // XORing (the bits of the number)
+5 | 5 // ORing (the bits of the number)
+(5 + 5) - 5 // parenthesis work
