@@ -40,15 +40,14 @@ impl<'a> Lexer<'a> {
 
     pub fn next_token(&mut self) -> Token<'a> {
         self.skip_nontokens();
+        let loc = Location::from_input(&self.input[..self.ci]);
 
         if self.is_at_end() {
             return Token {
                 kind: TokenKind::Eof,
-                loc: Location::empty(),
+                loc,
             };
         }
-
-        let loc = Location::from_input(&self.input[..self.ci]);
 
         let kind = match self.c {
             '"' => {
