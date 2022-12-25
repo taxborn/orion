@@ -177,6 +177,9 @@ impl<'a> Lexer<'a> {
                     if *chr == '/' {
                         self.skip_two();
                         return self.scan_comment();
+                    } else if *chr == '*' {
+                        self.skip_two();
+                        return self.scan_multiline_comment();
                     }
                 }
 
@@ -303,6 +306,36 @@ impl<'a> Lexer<'a> {
         Token {
             kind: TokenKind::Comment(&self.input[startpos..self.ci]),
             loc,
+        }
+    }
+
+    fn scan_multiline_comment(&mut self) -> Token<'a> {
+        let startpos = self.ci;
+        let loc = Location::from_input(&self.input[..self.ci]);
+        let mut closed = false;
+
+        while !self.is_at_end() {
+            self.scan_char();
+
+            if self.c == '*' {
+                if let Some((_, chr)) = self.iter.peek() {
+                    if *chr == '/' {
+                        // consume the trailing */
+                        self.skip_two();
+                        closed = true;
+                        break;
+                    }
+                }
+            }
+        }
+
+        if closed {
+            Token {
+                kind: TokenKind::Comment(&self.input[startpos..(self.ci - 2)]),
+                loc,
+            }
+        } else {
+            self.error_token()
         }
     }
 
