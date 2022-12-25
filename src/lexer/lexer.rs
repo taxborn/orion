@@ -331,6 +331,7 @@ impl<'a> Lexer<'a> {
 
         if closed {
             Token {
+                // Remove the '*/'
                 kind: TokenKind::Comment(&self.input[startpos..(self.ci - 2)]),
                 loc,
             }

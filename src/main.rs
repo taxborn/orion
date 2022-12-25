@@ -2,7 +2,6 @@ use clap::Parser;
 use colored::*;
 use orion::error::OrionError;
 use orion::lexer::lexer::Lexer;
-use orion::lexer::tokens::*;
 use std::path::PathBuf;
 
 #[derive(Parser, Debug)]
@@ -48,15 +47,15 @@ fn main() -> Result<(), OrionError<'static>> {
     let mut lexer = Lexer::new(&contents);
 
     println!("{}", "[tokens found]:".green().bold());
-
-    // Lexer implements Iterator, so we can call next for all tokens.
-    while let Some(token) = lexer.next() {
+    // Lexer implements Iterator, so we can loop over all tokens.
+    for token in lexer.by_ref() {
         println!("{token:?}");
     }
 
     // Check if there were any errors during lexing
     if lexer.error {
         println!("{}", "there was an error in lexing.".red().bold());
+        return Err(OrionError::Unimplemented);
     } else {
         println!("{}", "lexing successful.".white().bold());
     }
