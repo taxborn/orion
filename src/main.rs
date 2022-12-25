@@ -46,19 +46,20 @@ fn main() -> Result<(), OrionError<'static>> {
     }
 
     let mut lexer = Lexer::new(&contents);
-    let mut toks: Vec<Token> = vec![];
 
-    loop {
-        let tok = lexer.next_token();
+    println!("{}", "[tokens found]:".green().bold());
 
-        if tok.kind != TokenKind::Eof {
-            toks.push(tok);
-        } else {
-            break;
-        }
+    // Lexer implements Iterator, so we can call next for all tokens.
+    while let Some(token) = lexer.next() {
+        println!("{token:?}");
     }
 
-    println!("{toks:?}");
+    // Check if there were any errors during lexing
+    if lexer.error {
+        println!("{}", "there was an error in lexing.".red().bold());
+    } else {
+        println!("{}", "lexing successful.".white().bold());
+    }
 
     Ok(())
 }

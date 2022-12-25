@@ -66,13 +66,10 @@ impl Location {
     }
 
     pub fn from_input(input: &str) -> Self {
-        // TODO: Current bug in computing lines. this just doesn't work.
         let lines: usize = input
             .chars()
-            .take_while(|ch| *ch == '\n')
+            .filter(|&ch| ch == '\n')
             .count();
-
-        println!("lines found: {lines}\ninput: {input}");
 
         let cols = match input.rfind('\n') {
             Some(index) => input.len() - index - 1,
@@ -100,7 +97,7 @@ impl<'tok> Token<'tok> {
     }
 
     pub fn length(&self) -> usize {
-        let lexemme = format!("{}", self);
+        let lexemme = format!("{self}");
 
         lexemme.len()
     }

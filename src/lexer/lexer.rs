@@ -10,7 +10,7 @@ pub struct Lexer<'a> {
     c: char,
     ci: usize,
 
-    error: bool,
+    pub error: bool,
 }
 
 impl<'a> Lexer<'a> {
@@ -238,7 +238,7 @@ impl<'a> Lexer<'a> {
             token
         } else if self.c.is_alphabetic() || self.c == '_' {
             self.scan_identifier()
-        } else if self.c.is_digit(10) {
+        } else if self.c.is_ascii_digit() {
             self.scan_number()
         } else {
             self.error_token()
@@ -272,12 +272,11 @@ impl<'a> Lexer<'a> {
 
     fn scan_number(&mut self) -> Token<'a> {
         let startpos = self.ci;
+        let loc = Location::from_input(&self.input[..self.ci]);
 
-        while self.c.is_digit(10) {
+        while self.c.is_ascii_digit() {
             self.scan_char();
         }
-
-        let loc = Location::from_input(&self.input[..self.ci]);
 
         Token {
             kind: TokenKind::Identifier(&self.input[startpos..self.ci]),
