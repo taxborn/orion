@@ -1,0 +1,25 @@
+// Main function
+func main() : usize = {
+
+}
+
+// Addition function
+func add(a : usize, b : usize) : usize = {
+    return a + b;
+}
+
+// Subtraction the smallest number from the largest number passed
+func sub_large_from_small(a : usize, b : usize) : usize = {
+    if (a > b) {
+        return a - b;
+    }
+
+    return b - a;
+}
+
+// notice the lack of types?   V
+func void_function(_ : usize) : = {
+    // doesn't return anything
+    // maybe prints something?
+    // or does something to a structure passed.
+}

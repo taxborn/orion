@@ -52,6 +52,7 @@ impl OrionError {
 }
 
 impl Display for OrionError {
+    /// Display the error in a useful and colorful format
     fn fmt(&self, f: &mut Formatter<'_>) -> Result {
         let prefix = "[ERROR]".red().bold();
 
