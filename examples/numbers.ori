@@ -1,0 +1,4 @@
+let num1 := 500;
+let underscores := 500_000;
+let floats := 500.0005;
+let floats_and_underscores := 500_000.005_005;
