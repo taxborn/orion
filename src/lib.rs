@@ -1,8 +1,9 @@
 pub mod error;
 pub mod lexer;
+pub mod parser;
 
 use crate::error::*;
-use crate::lexer::lexer::*;
+use crate::lexer::state::*;
 use crate::lexer::tokens::*;
 use colored::*;
 

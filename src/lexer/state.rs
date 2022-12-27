@@ -1,10 +1,11 @@
 //! Lexer for the Orion compiler
+use crate::lexer::tokens::Location;
 use crate::lexer::tokens::Token;
 use crate::lexer::tokens::TokenKind;
-use crate::lexer::tokens::Location;
 use std::iter::Peekable;
 use std::str::CharIndices;
 
+#[derive(Debug)]
 pub struct Lexer<'a> {
     // The initial input to the lexer
     input: &'a str,
@@ -86,13 +87,13 @@ impl<'a> Lexer<'a> {
             ':' => {
                 if let Some((_, chr)) = self.iter.peek() {
                     if *chr == '=' {
-                        self.skip_two();
+                        self.skip_n(2);
                         return Token {
                             kind: TokenKind::UntypedAssignment,
                             loc,
                         };
                     } else if *chr == ':' {
-                        self.skip_two();
+                        self.skip_n(2);
                         return Token {
                             kind: TokenKind::ColonColon,
                             loc,
@@ -108,13 +109,13 @@ impl<'a> Lexer<'a> {
             '-' => {
                 if let Some((_, chr)) = self.iter.peek() {
                     if *chr == '>' {
-                        self.skip_two();
+                        self.skip_n(2);
                         return Token {
                             kind: TokenKind::RightArrow,
                             loc,
                         };
                     } else if *chr == '-' {
-                        self.skip_two();
+                        self.skip_n(2);
                         return Token {
                             kind: TokenKind::Decrement,
                             loc,
@@ -127,19 +128,19 @@ impl<'a> Lexer<'a> {
             '<' => {
                 if let Some((_, chr)) = self.iter.peek() {
                     if *chr == '-' {
-                        self.skip_two();
+                        self.skip_n(2);
                         return Token {
                             kind: TokenKind::LeftArrow,
                             loc,
                         };
                     } else if *chr == '<' {
-                        self.skip_two();
+                        self.skip_n(2);
                         return Token {
                             kind: TokenKind::LesserLesser,
                             loc,
                         };
                     } else if *chr == '=' {
-                        self.skip_two();
+                        self.skip_n(2);
                         return Token {
                             kind: TokenKind::LesserEq,
                             loc,
@@ -152,13 +153,13 @@ impl<'a> Lexer<'a> {
             '>' => {
                 if let Some((_, chr)) = self.iter.peek() {
                     if *chr == '>' {
-                        self.skip_two();
+                        self.skip_n(2);
                         return Token {
                             kind: TokenKind::GreaterGreater,
                             loc,
                         };
                     } else if *chr == '=' {
-                        self.skip_two();
+                        self.skip_n(2);
                         return Token {
                             kind: TokenKind::GreaterEq,
                             loc,
@@ -171,7 +172,7 @@ impl<'a> Lexer<'a> {
             '.' => {
                 if let Some((_, chr)) = self.iter.peek() {
                     if *chr == '.' {
-                        self.skip_two();
+                        self.skip_n(2);
                         return Token {
                             kind: TokenKind::DotDot,
                             loc,
@@ -185,7 +186,7 @@ impl<'a> Lexer<'a> {
             '+' => {
                 if let Some((_, chr)) = self.iter.peek() {
                     if *chr == '+' {
-                        self.skip_two();
+                        self.skip_n(2);
                         return Token {
                             kind: TokenKind::Increment,
                             loc,
@@ -199,10 +200,10 @@ impl<'a> Lexer<'a> {
             '/' => {
                 if let Some((_, chr)) = self.iter.peek() {
                     if *chr == '/' {
-                        self.skip_two();
+                        self.skip_n(2);
                         return self.scan_single_line_comment();
                     } else if *chr == '*' {
-                        self.skip_two();
+                        self.skip_n(2);
                         return self.scan_multiline_comment();
                     }
                 }
@@ -216,7 +217,7 @@ impl<'a> Lexer<'a> {
             '!' => {
                 if let Some((_, chr)) = self.iter.peek() {
                     if *chr == '=' {
-                        self.skip_two();
+                        self.skip_n(2);
                         return Token {
                             kind: TokenKind::BangEq,
                             loc,
@@ -229,7 +230,7 @@ impl<'a> Lexer<'a> {
             '=' => {
                 if let Some((_, chr)) = self.iter.peek() {
                     if *chr == '=' {
-                        self.skip_two();
+                        self.skip_n(2);
                         return Token {
                             kind: TokenKind::EqEq,
                             loc,
@@ -281,6 +282,13 @@ impl<'a> Lexer<'a> {
         let input = &self.input[startpos..self.ci];
 
         // Checks for hard keywords. Mostly unimplemented for now.
+        if input == "let" {
+            return Token {
+                kind: TokenKind::Let,
+                loc,
+            };
+        }
+
         if input == "return" {
             return Token {
                 kind: TokenKind::Keyword(input),
@@ -300,7 +308,7 @@ impl<'a> Lexer<'a> {
         let loc = Location::from_input(&self.input[..startpos]);
 
         // TOOD: Check and account for various bases (oct, dec, hex)
-        while self.c.is_ascii_digit() {
+        while self.c.is_ascii_digit() || self.c == '_' || self.c == '.' {
             self.scan_char();
         }
 
@@ -368,7 +376,7 @@ impl<'a> Lexer<'a> {
                 if let Some((_, chr)) = self.iter.peek() {
                     if *chr == '/' {
                         // consume the trailing */
-                        self.skip_two();
+                        self.skip_n(2);
                         closed = true;
                         break;
                     }
@@ -415,9 +423,10 @@ impl<'a> Lexer<'a> {
 
     /// When scanning through multi-charactered tokens, sometimes it's useful
     /// to skip two at once.
-    fn skip_two(&mut self) {
-        self.scan_char();
-        self.scan_char();
+    fn skip_n(&mut self, many: usize) {
+        for i in 0..many {
+            self.scan_char();
+        }
     }
 }
 

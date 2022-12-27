@@ -1,10 +1,11 @@
-use clap::Parser;
+use clap::Parser as ClapParser;
 use colored::*;
 use orion::error::OrionError;
-use orion::lexer::lexer::Lexer;
+use orion::lexer::state::Lexer;
+use orion::parser::state::Parser;
 use std::path::PathBuf;
 
-#[derive(Parser, Debug)]
+#[derive(ClapParser, Debug)]
 #[command(author, version, about, long_about = None)]
 struct Args {
     /// The path of the file to compile
@@ -55,6 +56,11 @@ fn main() -> Result<(), OrionError> {
     if args.tokens {
         orion::print_tokens(&mut lexer, args.verbose)?;
     }
+
+    let mut parser = Parser::new(lexer);
+    let mut stmts = parser.parse();
+
+    println!("{stmts:?}");
 
     Ok(())
 }

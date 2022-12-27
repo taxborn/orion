@@ -29,6 +29,10 @@ pub enum TokenKind<'tok> {
     Number(&'tok str),
     Quote(&'tok str),
 
+    // Keywords
+    Let,
+    Return,
+
     // Operators
     Plus,           // +
     Increment,      // ++
